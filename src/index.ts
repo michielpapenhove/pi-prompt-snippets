@@ -1,8 +1,8 @@
 /**
  * Prompt snippets extension.
  *
- * Alt+S opens an overlay with markdown snippets from PI_SNIPPETS_DIR
- * (default ~/.pi/agent/snippets, recursive, re-read on every open).
+ * Opens an overlay with markdown snippets, configured under the `prompt-snippets`
+ * key in settings.json (recursive scan, re-read on every open).
  * Type to filter (name, description, folder), toggle checkboxes with space,
  * pick the attach mode with alt+d, apply with enter, cancel with escape
  * (escape first clears the query).
@@ -13,7 +13,9 @@
  */
 
 import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
+import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import { matchesKey, visibleWidth, type Focusable, type KeyId } from "@earendil-works/pi-tui";
+import { readFileSync } from "node:fs";
 import { cp } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -24,7 +26,44 @@ import { loadSnippets, type AttachMode, type Snippet } from "./snippets.ts";
 const PACKAGE_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const STARTER_DIR = join(PACKAGE_ROOT, "snippets");
 
-const SHORTCUT = (process.env["PI_SNIPPETS_SHORTCUT"]?.trim() || "alt+s") as KeyId;
+const SETTINGS_KEY = "prompt-snippets";
+
+interface Settings {
+	dir?: string;
+	shortcut?: string;
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+	return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+/** Read the `prompt-snippets` object from one settings file; anything unreadable counts as unset. */
+function readNamespace(path: string): Settings {
+	try {
+		const raw = JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
+		const nested = raw[SETTINGS_KEY];
+		if (typeof nested !== "object" || nested === null) return {};
+		const value = nested as Record<string, unknown>;
+		return { dir: nonEmptyString(value["dir"]), shortcut: nonEmptyString(value["shortcut"]) };
+	} catch {
+		return {};
+	}
+}
+
+/**
+ * Settings from the global `<agent-dir>/settings.json`. Read here instead of through
+ * `pi.getSettings()` because the shortcut has to be registered while the extension
+ * loads, where action methods are not available yet. Project settings are skipped
+ * on purpose: they only apply after project trust, which is settled after load.
+ */
+function readSettings(): Settings {
+	return readNamespace(join(getAgentDir(), "settings.json"));
+}
+
+const CONFIG = readSettings();
+
+/** Environment variables win over settings.json, for one-off runs with other snippets. */
+const SHORTCUT = (process.env["PI_SNIPPETS_SHORTCUT"]?.trim() || CONFIG.shortcut || "alt+s") as KeyId;
 
 interface ApplyResult {
 	selected: Snippet[];
@@ -62,7 +101,7 @@ function truncate(text: string, maxWidth: number): string {
 }
 
 function snippetsRoot(): string {
-	const configured = process.env["PI_SNIPPETS_DIR"]?.trim();
+	const configured = process.env["PI_SNIPPETS_DIR"]?.trim() || CONFIG.dir;
 	if (!configured) return join(homedir(), ".pi", "agent", "snippets");
 	const expanded = configured.replace(/^~(?=$|\/)/, homedir());
 	return resolve(expanded);

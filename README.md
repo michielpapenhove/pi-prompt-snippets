@@ -85,11 +85,7 @@ The **top-level folder** becomes the category, so `research/evidence.md` lands u
 
 ### Where snippets live
 
-`~/.pi/agent/snippets` by default, or whatever `PI_SNIPPETS_DIR` points at:
-
-```bash
-PI_SNIPPETS_DIR=~/notes/prompts pi
-```
+`~/.pi/agent/snippets` by default, or whatever `dir` says (see [configuration](#configuration)).
 
 On first use, when the snippets directory does not exist yet, the bundled starter library is copied there so you have something to edit. This ships with nine snippets: concise answers, evidence over speculation, read-only investigation, staying in scope, smallest working change, review checklist, self-explaining commits, production change with a plan, and reporting when done.
 
@@ -97,12 +93,27 @@ Delete or rewrite them freely; they are yours once copied.
 
 ## Configuration
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `PI_SNIPPETS_DIR` | `~/.pi/agent/snippets` | where snippets are read from (`~` is expanded) |
-| `PI_SNIPPETS_SHORTCUT` | `alt+s` | key that opens the overlay, e.g. `ctrl+alt+s` |
+Settings live in your Pi settings file (`~/.pi/agent/settings.json`) under a `prompt-snippets` key. Both fields are optional, and the defaults are what you get without the key:
 
-Both are read when the extension loads, so set them in your shell profile and restart Pi.
+```json
+{
+  "prompt-snippets": {
+    "dir": "~/notes/prompts",
+    "shortcut": "ctrl+alt+s"
+  }
+}
+```
+
+| Key | Default | Purpose |
+|---|---|---|
+| `dir` | `~/.pi/agent/snippets` | where snippets are read from (`~` is expanded) |
+| `shortcut` | `alt+s` | key that opens the overlay, e.g. `ctrl+alt+s` |
+
+The file is read when the extension loads, so run `/reload` after editing. The `PI_SNIPPETS_DIR` and `PI_SNIPPETS_SHORTCUT` environment variables override the settings for a single run, which is handy for trying another library without editing anything:
+
+```bash
+PI_SNIPPETS_DIR=~/notes/prompts pi
+```
 
 ## Limits
 
