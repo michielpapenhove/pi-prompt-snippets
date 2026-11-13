@@ -25,12 +25,12 @@ Searchable markdown prompt snippets for [Pi](https://pi.dev), one keystroke away
 ## Install
 
 ```bash
-pi install git:github.com/<owner>/pi-prompt-snippets
+pi install git:github.com/michielpapenhove/pi-prompt-snippets
 ```
 
-Replace `<owner>` with the GitHub user hosting this repository. Then run `/reload` in Pi, or restart it.
+Then run `/reload` in Pi, or restart it. Prefer an explicit URL? `pi install git:https://github.com/michielpapenhove/pi-prompt-snippets.git` does the same.
 
-To pin a release: `pi install git:github.com/<owner>/pi-prompt-snippets@v1.0.0`.
+To pin a release: `pi install git:github.com/michielpapenhove/pi-prompt-snippets@v1.0.0`.
 
 Updating later:
 
@@ -38,7 +38,7 @@ Updating later:
 pi update --extensions
 ```
 
-Removing it: `pi remove git:github.com/<owner>/pi-prompt-snippets`.
+Removing it: `pi remove git:github.com/michielpapenhove/pi-prompt-snippets`.
 
 Want to try a local checkout instead? `pi install ./pi-prompt-snippets`, or for a single run without touching your settings:
 
